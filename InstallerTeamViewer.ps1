@@ -17,7 +17,7 @@ if (!($MyApp -eq $null)) {
 Stop-process -name TeamViewer -Force
 echo "Downloading TeamViewer MSI"
 [Net.ServicePointManager]::SecurityProtocol = 'Tls11,Tls12'
-#Invoke-WebRequest -Uri $msi_url -OutFile $tv_msi_path
+Invoke-WebRequest -Uri $msi_url -OutFile $tv_msi_path
 
 $INSTALLED = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |  Select-Object DisplayName, UninstallString
 $INSTALLED += Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, UninstallString
