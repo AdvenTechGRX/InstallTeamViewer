@@ -14,19 +14,31 @@ if (!($MyApp -eq $null)) {
     $MyApp.Uninstall() 
 }
 
-
+Stop-process -name TeamViewer -Force
 echo "Downloading TeamViewer MSI"
 [Net.ServicePointManager]::SecurityProtocol = 'Tls11,Tls12'
-Invoke-WebRequest -Uri $msi_url -OutFile $tv_msi_path
+#Invoke-WebRequest -Uri $msi_url -OutFile $tv_msi_path
 
-$MyApp = Get-WmiObject -Class Win32_Product | Where-Object{$_.Name -like "TeamViewer*"}
-if (!($MyApp -eq $null)) {
-    $MyApp.Uninstall() 
+$INSTALLED = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* |  Select-Object DisplayName, UninstallString
+$INSTALLED += Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, UninstallString
+$INSTALLED | ?{ $_.DisplayName -ne $null } | sort-object -Property DisplayName -Unique | Format-Table -AutoSize
+$SEARCH = 'TeamViewer'
+$RESULT =$INSTALLED | ?{ $_.DisplayName -ne $null } | Where-Object {$_.DisplayName -match $search } 
+$RESULT
+
+
+if ($RESULT.uninstallstring -like "msiexec*") {
+$ARGS=(($RESULT.UninstallString -split ' ')[1] -replace '/I','/X ') + ' /q'
+Start-Process msiexec.exe -ArgumentList $ARGS -Wait
+} else {
+Start-Process $RESULT.UninstallString -ArgumentList "/S" -Wait
 }
-else {
+
+
+
 echo "installing TV"
 msiexec.exe /i C:\TeamViewer_Install\TeamViewer_Host-idc635e8wt.msi /qn APITOKEN=15904506-np5jat32OOUzEt9mWPh9  CUSTOMCONFIGID=635e8wt ASSIGNMENTOPTIONS="--grant-easy-access"
-}
+
 
 
 
